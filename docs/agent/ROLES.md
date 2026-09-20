@@ -112,7 +112,7 @@ Conceptually owns deterministic control-plane behavior:
 - lifecycle/dependency/Human-request/claim/candidate/gate/concurrency guards;
 - derivation of exactly one already-authorized next transition;
 - duplicate/no-op suppression;
-- durable deterministic state transitions;
+- deterministic transition-eligibility and durable-state guard reasoning;
 - stop at real Human boundaries.
 
 Booking Radar intentionally uses Human-controlled role activation. O remains a conceptual control-plane function for reconstructing/guarding durable state; it does not automatically dispatch or activate A/D/R/P. No autonomous O/GitHub orchestration is an expected project path unless Human later makes a new explicit governance decision. Manual dispatch does not weaken the durable-state or role-authority rules.
