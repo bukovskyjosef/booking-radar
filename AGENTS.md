@@ -5,7 +5,7 @@ This repository is the durable source of truth for Booking Radar.
 Before any role-bound material work:
 
 1. Read the assigned GitHub Issue and all current control-state / claim comments.
-2. Confirm that Human or the durable orchestration state explicitly assigned exactly one active role: H, A, D, R, or P. Never infer or self-switch roles.
+2. Confirm that Human explicitly assigned exactly one active role: H, A, D, R, or P. Issue status, handoff, automation, or O state never activates a role. Never infer or self-switch roles.
 3. Read [docs/agent/README.md](docs/agent/README.md) and only the canonical documents relevant to the active work.
 4. Pass the pre-run guard in [docs/agent/WORKFLOW.md](docs/agent/WORKFLOW.md), including lifecycle, dependency, claim, candidate and concurrency checks.
 5. Create the durable exclusive claim required by the workflow before material work.
