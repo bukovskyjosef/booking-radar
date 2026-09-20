@@ -66,7 +66,7 @@ Automated CI (including GitHub Actions) is **not a default project requirement**
 - absence of automated CI is not itself a defect when required deterministic validation evidence exists;
 - no workflow/check is added merely because CI is conventional or because a test exists;
 - no every-push or every-PR automated validation trigger is assumed or required;
-- introducing automated CI, adding a new automated validation workflow, or materially expanding its trigger scope requires a new explicit Human governance decision for a concrete justified need;
+- introducing automated CI, creating any new automated workflow, or materially expanding the trigger scope of any workflow requires a new explicit Human governance decision for a concrete justified need;
 - that Human decision must make the intended purpose and trigger scope explicit enough to avoid unnecessary repeated execution;
 - any later CI remains validation-only and must never activate, reassign, hand off, or advance A/D/R/P roles.
 
