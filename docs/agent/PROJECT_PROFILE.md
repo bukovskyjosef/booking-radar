@@ -61,14 +61,16 @@ Normal CI must not require real paid external APIs or production-like secrets. I
 
 Concrete Python/runtime CI is not yet established; it must be defined by the future technical-foundation work before business implementation relies on it.
 
-## Dispatch / orchestration stage
+## Dispatch / orchestration policy
 
-Current dispatch is manual/Human-activated.
+Booking Radar intentionally uses **manual Human-controlled orchestration**.
 
-- A role run still requires explicit activation and fresh durable-state reconstruction.
-- Issue status or a handoff does not itself activate a role.
-- Asistentka/Human-interface and O/Orchestrator boundaries are defined in [ROLES.md](ROLES.md).
-- Autonomous O infrastructure is not currently implemented.
+- Human is the sole activator/reassigner of A/D/R/P role runs.
+- Issue status and durable handoff identify the legitimate next authority only; they never dispatch, start, or reassign a role.
+- No GitHub automation, workflow, Asistentka, or O/Orchestrator may automatically invoke, hand work to, or advance A/D/R/P roles.
+- O may remain a conceptual control-plane model for durable-state reconstruction and guard reasoning, as defined in [ROLES.md](ROLES.md), but it is not an expected automatic dispatcher or future deployment path.
+- Every Human-activated role still fresh-reads durable state and passes the canonical guards in [WORKFLOW.md](WORKFLOW.md).
+- Any future change from this manual Human-controlled model requires a new explicit Human governance decision.
 
 ## Declared versus effective state
 
