@@ -4,8 +4,6 @@
 
 Booking Radar is a local-only tool for discovering, qualifying, and tracking potential concert organizers / venues / municipalities / recurring cultural programs for the band Hackatón.
 
-The business problem is that self-organized concerts outside Prague are unattractive when the band must create the event, venue and audience from scratch. Booking Radar should instead help find organizers that already operate a cultural-attendance mechanism and need programming.
-
 A promising lead generally has evidence of:
 
 - an existing audience or recurring cultural attendance mechanism;
@@ -28,9 +26,9 @@ This is intent, not yet a final scoring formula.
 
 ## Travel context
 
-The current Human intent is to consider practical travel from Úvaly, with roughly 1.5–2 hours as the upper normal weekday range.
+A promising lead should have reasonable travel time from the band's origin area.
 
-The precise origin representation, routing provider, traffic-time model, travel bands and scoring effect are **not yet canonical product decisions** and require follow-up shaping before implementation. Do not derive a provider or final formula from this statement.
+The precise origin representation, routing provider, traffic-time model, travel bands and scoring effect are **not yet canonical product decisions** and require follow-up shaping before implementation.
 
 ## Intentionally unresolved
 
