@@ -109,7 +109,7 @@ At minimum include:
 - released claim;
 - exactly one legal next authority or Human/blocker state.
 
-A handoff describes current durable state; it does not activate the next role. Human or future O must explicitly assign the next role.
+A handoff describes current durable state and identifies one legitimate next authority; it does not activate the next role. Under the current Project Profile, only Human explicitly assigns/activates the next A/D/R/P role. Automation or O state never performs that handoff automatically.
 
 ## Human Input Request
 
