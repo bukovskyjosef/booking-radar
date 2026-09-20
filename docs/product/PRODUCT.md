@@ -371,6 +371,95 @@ Rules:
 
 ---
 
+## Discovery source strategy
+
+Discovery uses multiple complementary source families. A source family's purpose is to generate or enrich Discovery Candidates and Evidence; it does **not** grant truth authority, qualification authority, or implementation-provider status.
+
+A Source records where information came from. Evidence records the concrete observation retained from that Source. Directories, catalogs, registries, aggregators, and search results may help locate candidates or evidence, but their presence or ranking never makes a claim true by itself. Material facts and qualification conclusions remain governed by the Source/Evidence, provenance, currentness, and qualification rules above.
+
+Documenting a source here does not authorize or require a crawler, scraper, API client, provider integration, cadence, ranking weight, or persistence design. Any automated collection must separately check applicable robots, terms, access, and execution-safety constraints before use.
+
+### Broad / seed discovery
+
+**Purpose:** generate candidate institutions, Organizers, Venues, and Program Series for later identity resolution and evidence-backed qualification.
+
+Typical source families include:
+- directories of cultural institutions or cultural centres;
+- municipality/city cultural-organization lists;
+- club or venue directories;
+- festival or recurring-series directories;
+- public registries or classification datasets useful for discovering organizations or municipal entities.
+
+Previously identified candidate seed/discovery sources include:
+- **NIK directory of cultural centres**;
+- **NIK festival directory**;
+- **AKCe member list**;
+- **Kultura.cz** — previously identified as containing a large music-club directory; a historical discovery note recorded **638 music clubs**. This number is not a current fact and must be re-verified before use as current Evidence;
+- **CSMusic** — previously identified club directory; a historical discovery note recorded **270 clubs**. This number is not a current fact and must be re-verified before use as current Evidence;
+- **ČSÚ / CISOB locality or organization data**, where useful for municipality/entity discovery;
+- **CzechPOINT / RPP public-registry contacts**, where useful for identifying public organizations or municipal entities;
+- **ARES with CZ-NACE 90.31**, as a possible organization-discovery or filtering input.
+
+These are discovery candidates, not canonical truth sources and not mandatory implementation providers. Their current availability, coverage, structure, access method, and usefulness must be re-verified before technical reliance.
+
+### Event-first discovery
+
+**Purpose:** discover actual Events or programming evidence first, then follow that evidence toward Venue, Program Series, and Organizer.
+
+Typical routes include:
+- event calendars;
+- venue/program pages;
+- recurring-series searches;
+- program/archive sections such as `/akce`, `/program`, `/kalendar`, `/kultura`, and `/archiv`.
+
+Useful recurring-format search patterns already identified include:
+- „Hudební středy“;
+- „Kulturní léto“;
+- „Promenádní koncerty“.
+
+An Event found this way is Evidence and a discovery path, not a Lead by itself. Organizer identity and programming authority still require resolution supported by Evidence.
+
+### Reverse / snowball discovery
+
+**Purpose:** start from a relevant or comparable Artist and follow observed booking history through:
+
+`Artist → Event → Venue/Program Series → Organizer`
+
+This route is discovery-only. Artist similarity models, similarity scoring, ranking, and a complete Artist catalog remain future scope. A comparable Artist appearing somewhere may generate a Discovery Candidate or useful Evidence; it does not automatically qualify the resulting Organizer/opportunity.
+
+### Evidence enrichment
+
+**Purpose:** after a candidate Organizer/opportunity has been discovered or partially resolved, collect stronger Evidence for identity, programming behavior, qualification, and actionability.
+
+Prefer primary/official material where available, including:
+- official Organizer, municipality, or cultural-organization sites;
+- official Venue or Program Series pages;
+- program archives;
+- individual Event pages;
+- programming and Contact pages.
+
+Search engines, aggregators, catalogs, directories, and registries may locate such material, but they do not become truth authority merely by returning or listing a result. Conflicting Evidence remains preserved, and freshness/currentness rules remain unchanged.
+
+### Illustrative discovery finding — Městská kulturní zařízení Šternberk / „Čtvrtky na náměstí“
+
+A prior discovery pass identified **Městská kulturní zařízení Šternberk / „Čtvrtky na náměstí“** as an illustrative example of the target pattern.
+
+The prior finding noted:
+- a recurring series;
+- roughly weekly/Thursday cadence;
+- multiple regional or lesser-known bands;
+- free-entry public programming.
+
+These details are historical discovery notes, not current Evidence, and must be re-verified before use as current facts or qualification support.
+
+The example illustrates the desired discovery chain:
+
+`Organizer + recurring Program Series + Events + audience mechanism + lesser-known artist programmability`
+
+It is **not** canonically or automatically a qualified Lead. It must still be resolved against current Source/Evidence and pass the full Organizer/Lead qualification contract, including every mandatory dimension. Missing or stale current Evidence therefore yields the normal `UNKNOWN` / `NEEDS_EVIDENCE` semantics rather than implied qualification.
+
+---
+
 ## MVP scope classification
 
 ### In MVP — core semantics
