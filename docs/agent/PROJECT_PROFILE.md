@@ -40,15 +40,17 @@ Normal executable work uses:
 - independent R review bound to the exact PR head SHA;
 - P integration of only that approved exact candidate.
 
+The PR is the normal candidate/review/integration artifact and is required independently of whether any automated CI exists.
+
 Ordinary integration does not require a separate Human release-authorization gate.
 
 Concrete lifecycle, claim, handoff, head-drift, corrective-loop, and completion semantics are canonical in [WORKFLOW.md](WORKFLOW.md) and [REVIEW.md](REVIEW.md).
 
-## Validation configuration
+## Validation and automated-CI policy
 
-Each Ready work item defines the deterministic gates relevant to its changed surface.
+Each Ready work item defines the deterministic validation/gates relevant to its changed surface.
 
-Expected gate categories, when relevant, include:
+Expected categories, when relevant, include:
 - formatting/lint/static checks;
 - type checks;
 - unit tests;
@@ -57,9 +59,18 @@ Expected gate categories, when relevant, include:
 - execution-safety tests;
 - documentary/link/static validation for documentation-only changes.
 
-Normal CI must not require real paid external APIs or production-like secrets. Irrelevant test classes must not be fabricated merely to satisfy a checklist.
+By default, required deterministic validation may be executed **locally** by the authorized role and recorded as durable evidence on the Issue/PR. Sufficient current local deterministic evidence satisfies a required gate unless the work contract explicitly requires some additional execution surface.
 
-Concrete Python/runtime CI is not yet established; it must be defined by the future technical-foundation work before business implementation relies on it.
+Automated CI (including GitHub Actions) is **not a default project requirement**. In particular:
+- technical foundation is not required to introduce automated CI merely because executable code exists;
+- absence of automated CI is not itself a defect when required deterministic validation evidence exists;
+- no workflow/check is added merely because CI is conventional or because a test exists;
+- no every-push or every-PR automated validation trigger is assumed or required;
+- introducing automated CI, creating any new automated workflow, or materially expanding the trigger scope of any workflow requires a new explicit Human governance decision for a concrete justified need;
+- that Human decision must make the intended purpose and trigger scope explicit enough to avoid unnecessary repeated execution;
+- any later CI remains validation-only and must never activate, reassign, hand off, or advance A/D/R/P roles.
+
+If automated CI is explicitly authorized later, it must not require real paid external APIs or production-like secrets merely to pass normal gates. Irrelevant test classes must not be fabricated merely to satisfy a checklist.
 
 ## Dispatch / orchestration policy
 
