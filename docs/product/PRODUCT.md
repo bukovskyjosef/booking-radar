@@ -1,18 +1,19 @@
-# Booking Radar — product intent
+# Booking Radar — product and MVP domain contract
 
 ## Purpose
 
 Booking Radar is a local-only tool for discovering, qualifying, and tracking potential concert organizers / venues / municipalities / recurring cultural programs for the band Hackatón.
 
-A promising lead generally has evidence of:
+The primary target is not rentable space. The product seeks an organizer/opportunity that already has an audience mechanism and recurring or curated programming and may realistically book Hackatón.
 
-- an existing audience or recurring cultural attendance mechanism;
+A promising lead requires evidence supporting:
+- an existing audience or recurring attendance mechanism;
 - recurring or curated cultural/music programming;
 - realistic willingness to program lesser-known bands;
 - practical fit for Hackatón;
 - reasonable travel time from the band's origin area.
 
-This is intent, not yet a final scoring formula.
+The MVP uses explicit evidence-backed categorical qualification. It does not define a numeric scoring formula.
 
 ## Authorized current technical/product constraints
 
@@ -24,29 +25,390 @@ This is intent, not yet a final scoring formula.
 - There is no production/staging deployment environment.
 - Future crawling/network/batch/AI/routing or working-database mutation must use the project's safe execution contract.
 
-## Travel context
+This document defines product/domain semantics only. It does not define a physical database schema or implementation architecture.
 
-A promising lead should have reasonable travel time from the band's origin area.
+---
 
-The precise origin representation, routing provider, traffic-time model, travel bands and scoring effect are **not yet canonical product decisions** and require follow-up shaping before implementation.
+## MVP product boundary
 
-## Intentionally unresolved
+The first usable Booking Radar must be able to represent and retain enough information to:
 
-The following are not defined by this bootstrap and must not be inferred from implementation convenience:
+1. discover a potential opportunity from heterogeneous sources;
+2. resolve what real-world organizer/opportunity the discovery refers to;
+3. keep Organizer, Venue, Program Series and individual Event semantically distinct;
+4. retain Source/Evidence for material facts;
+5. assess an opportunity against the required Hackatón relevance dimensions;
+6. distinguish insufficient evidence from negative evidence;
+7. retain derived assessments separately from observed facts, including whether they were HUMAN, DETERMINISTIC or AI-derived;
+8. expose whether a candidate still needs evidence, is qualified as a Lead, or is rejected on evidenced grounds;
+9. keep travel as a qualification dimension without hard-coding an unauthorized travel policy;
+10. retain known Contact channels without implementing outreach.
 
-- final MVP boundary and decomposition;
-- final domain entity model;
-- final PostgreSQL schema/views;
-- exact seed/discovery data sources;
-- web-crawling architecture;
-- event/series detection semantics;
-- AI classifier model/prompts;
-- lead scoring formula/weights/thresholds;
-- routing/geocoding provider and detailed travel model;
-- contact/outreach workflow;
-- final cost/rate-limit policies for external providers.
+SQL SELECTs/views remain sufficient as the initial UI. This contract does not define their physical schema.
 
-These require future A shaping and Human decisions where product authority is needed.
+---
+
+## Minimal domain model
+
+These are semantic concepts, not authorization for one-table-per-concept persistence.
+
+### Organizer — core
+
+The primary real-world subject Booking Radar wants to find and qualify.
+
+An Organizer is the person, organization, municipality, institution or operator that has programming authority or materially controls booking for a cultural program or event.
+
+Examples by role include a municipal cultural organization, cultural-center operator, club operator, festival organizer or recurring-program curator.
+
+Rules:
+- qualification is primarily about an Organizer/opportunity, not a building;
+- one Organizer may operate multiple Venues and/or Program Series;
+- multiple Organizers may use the same Venue;
+- an entity colloquially named like a venue may play both organizer and venue roles, but those roles remain semantically separable.
+
+### Venue — core supporting concept
+
+A physical place where an Event may occur.
+
+Venue is not synonymous with Organizer.
+
+A Venue may:
+- be operated by an Organizer;
+- host Events from multiple Organizers;
+- host one or more Program Series.
+
+A venue being available for rent is not by itself evidence of a relevant Lead.
+
+### Program Series — core
+
+A recurring or curated program identity under which multiple cultural/music occurrences are presented.
+
+Examples include a municipal summer-concert series, a club's recurring curated concert program or a recurring festival brand.
+
+A Program Series:
+- is associated with at least one Organizer;
+- may primarily use one Venue or move between Venues;
+- is distinct from any one dated occurrence.
+
+A calendar containing unrelated events is not automatically a Program Series. Series identity requires recurring/curated program continuity.
+
+### Event — core supporting evidence
+
+A specific dated or otherwise individually identifiable cultural occurrence.
+
+Event is the main observational unit for evidence such as:
+- who organized/programmed something;
+- where it happened;
+- which Artists appeared;
+- whether an Organizer repeatedly programs music.
+
+A recurring festival/series is a Program Series; one specific edition/date/occurrence is an Event for MVP purposes. The MVP does not need set-level or performance-slot modeling.
+
+An Event may be standalone or linked to one or more Program Series where source evidence supports that relationship.
+
+### Artist — supporting
+
+A performer/band identity observed in Events.
+
+Artist exists in MVP only to support:
+- evidence about Organizer programming behavior;
+- event-based discovery;
+- reverse/snowball discovery from places where relevant/comparable Artists have played.
+
+The MVP does not require a complete artist catalog, similarity engine or artist scoring model.
+
+### Contact — supporting
+
+A known contact person or contact channel associated primarily with an Organizer and, where evidence requires, optionally with a Venue or Program Series.
+
+Contact data may include a general booking/programming channel even when no named person is known.
+
+Contact availability is not a qualification requirement for relevance. It affects later actionability only.
+
+Sending messages, tracking outreach attempts or campaign state is future scope.
+
+### Source and Evidence — core
+
+A Source is the origin from which information was obtained, for example:
+- webpage/listing;
+- event page;
+- municipal/cultural directory;
+- imported file/list;
+- future API/search result;
+- explicit manual Human observation/entry.
+
+Evidence is a concrete sourced observation that supports or contradicts a fact or assessment.
+
+Material product facts and derived conclusions must be traceable to one or more Evidence items where applicable.
+
+The discovery mechanism itself never grants truth or qualification authority.
+
+### Discovery Candidate — core workflow concept
+
+A discovered subject/hypothesis not yet sufficiently resolved and qualified.
+
+A Discovery Candidate may initially point to:
+- an Organizer;
+- a Venue;
+- a Program Series;
+- an Event;
+- or a source item from which the real Organizer still needs to be derived.
+
+Different discovery paths must converge through identity resolution and Evidence into the same Organizer-centered model.
+
+A Discovery Candidate is not yet a qualified Lead.
+
+### Lead — core product concept
+
+A Lead is an Organizer-centered booking opportunity that has passed the current qualification contract.
+
+Lead is not a duplicate synonym for Organizer.
+
+A Lead consists conceptually of:
+- the Organizer;
+- optional opportunity context such as a relevant Program Series and/or Venue;
+- the current Qualification Assessment and supporting Evidence.
+
+The same Organizer may have multiple distinguishable opportunity contexts if different programs or venues materially differ in relevance.
+
+### Qualification Assessment — core
+
+A derived, evidence-backed assessment of a Discovery Candidate / Lead context against the required relevance dimensions.
+
+Qualification is versionable/re-assessable product state, not an immutable fact about an Organizer.
+
+For each qualification dimension, the semantic outcome is:
+
+```text
+SUPPORTED
+CONTRADICTED
+UNKNOWN
+```
+
+Freshness/currentness is separate from truth status.
+
+Overall candidate state is:
+
+```text
+NEEDS_EVIDENCE
+QUALIFIED
+REJECTED
+```
+
+Rules:
+- `UNKNOWN` never means false;
+- a candidate with an `UNKNOWN` mandatory dimension cannot be rejected merely because evidence is absent;
+- `REJECTED` requires current evidence that contradicts at least one mandatory relevance dimension;
+- `QUALIFIED` requires all mandatory dimensions to be `SUPPORTED` by adequate current evidence and none contradicted;
+- otherwise the candidate remains `NEEDS_EVIDENCE`.
+
+This is a categorical contract, not a scoring formula.
+
+### Travel Assessment — core qualification input
+
+Travel is a mandatory qualification dimension attached to the relevant opportunity/location, not a permanent property of Organizer identity.
+
+Semantic result:
+
+```text
+UNKNOWN
+REASONABLE
+UNREASONABLE
+```
+
+A Travel Assessment must retain:
+- the location/context assessed;
+- method/provenance;
+- relevant observed travel fact(s), if available;
+- when the assessment/evidence was obtained.
+
+This contract intentionally does not authorize:
+- an exact band-origin address;
+- a routing/geocoding provider;
+- a numeric time/distance threshold;
+- a traffic-time model;
+- travel bands or weights.
+
+Until a later authorized travel policy exists, automated logic must not invent the rule that converts measured travel data into `REASONABLE` or `UNREASONABLE`. It may preserve measured facts and/or an explicit Human-provided assessment with provenance; otherwise the result remains `UNKNOWN`.
+
+This unresolved implementation policy does not block the MVP/domain or later persistence design.
+
+---
+
+## Required Organizer/Lead qualification dimensions
+
+A relevant Hackatón Lead must have evidence supporting all five dimensions:
+
+1. **Audience mechanism** — there is an existing audience, recurring attendance mechanism, community or established channel that can plausibly bring attendees without Hackatón creating the event from zero.
+2. **Recurring/curated programming** — the Organizer runs or controls recurring or meaningfully curated cultural/music programming rather than merely renting space.
+3. **Lesser-known artist programmability** — evidence supports that the Organizer can realistically book artists without requiring major-name status.
+4. **Hackatón fit** — observed programming/context is plausibly compatible with Hackatón as a Czech authorial folk-rock band; exact scoring taxonomy is future scope.
+5. **Travel reasonableness** — current Travel Assessment is `REASONABLE`.
+
+These dimensions are independent and evidence-backed. They must not be collapsed into one opaque score in MVP.
+
+Contact availability is useful supporting data but is not a mandatory qualification dimension.
+
+---
+
+## Observed facts, derived assessments and inference
+
+### Observed fact
+
+An observed fact is a claim directly supported by Source/Evidence, for example:
+- an Event occurred at a Venue;
+- an Artist appeared on a program;
+- a named organization is presented as Organizer;
+- a website lists a programming Contact.
+
+Observed does not mean infallible; provenance and currentness still matter.
+
+### Derived assessment
+
+A derived assessment is a conclusion produced from one or more facts/Evidence items, for example:
+- an Organizer appears to run a recurring program;
+- a programming pattern supports lesser-known artist programmability;
+- a candidate appears compatible with Hackatón.
+
+Every derived assessment must identify its derivation method:
+
+```text
+HUMAN
+DETERMINISTIC
+AI
+```
+
+AI output is an inference and must never be silently promoted to observed fact.
+
+A deterministic extraction remains distinct from the underlying Source/Evidence. If parsing/extraction certainty matters, that uncertainty must remain representable.
+
+Conflicting Evidence is preserved and surfaced rather than overwritten by whichever observation arrived last.
+
+---
+
+## Evidence, provenance and currentness
+
+### Provenance
+
+A material fact or assessment must be traceable to the Evidence used to support or contradict it.
+
+Where practical, provenance identifies:
+- source identity/reference;
+- what was observed;
+- observation/event date when available;
+- retrieval/capture date;
+- derivation method for inferred conclusions.
+
+The technical representation is future design.
+
+### UNKNOWN versus evidenced negative
+
+`UNKNOWN` means sufficient evidence is absent or inconclusive.
+
+A negative/false/contradicted conclusion requires evidence supporting that negative conclusion.
+
+Examples:
+- no Contact found does not mean the Organizer has no contact;
+- no recent Event found does not mean the Organizer stopped operating;
+- missing Artist history on a Venue website does not mean the Venue never hosts music.
+
+### Currentness / freshness
+
+Evidence and derived conclusions may become stale.
+
+Currentness must be representable separately from value/truth.
+
+No global freshness duration is authorized. Later contracts may define fact-specific refresh rules.
+
+A qualification relying materially on stale Evidence must be identifiable as needing refresh; stale Evidence is not silently treated as current or as false.
+
+### Confidence
+
+Confidence is optional metadata for uncertain extraction/classification/inference.
+
+No universal numeric confidence scale or threshold is defined by this contract.
+
+Confidence:
+- does not replace Evidence;
+- does not turn `UNKNOWN` into false;
+- must be interpreted in the context of its producing method unless a later canonical scale is defined.
+
+---
+
+## Discovery normalization contract
+
+All future discovery mechanisms feed the same domain semantics.
+
+Supported conceptual paths include:
+- institution/venue lists → candidate Organizer/Venue;
+- municipalities/cultural organizations → Organizer + possible Program Series;
+- venue/program websites → Venue/Program Series + Organizer Evidence;
+- event search → Event → Venue/Program Series → Organizer;
+- festival/recurring-series discovery → Program Series → Organizer;
+- similar/comparable Artist history → Artist → Event → Venue/Program Series → Organizer.
+
+Rules:
+
+1. Discovery route does not determine Lead quality.
+2. The same Organizer found by different routes should resolve to one Organizer identity where Evidence supports that identity.
+3. Source-specific raw/Evidence context is preserved even after identity resolution.
+4. A Venue discovered first must not be treated as Organizer without Evidence of programming authority.
+5. An Event discovered first is Evidence and a path to the Organizer; it is not itself a Lead.
+6. Duplicate/identity uncertainty must remain representable rather than being resolved by guess.
+
+Exact deduplication algorithms are technical future scope.
+
+---
+
+## MVP scope classification
+
+### In MVP — core semantics
+
+- Organizer
+- Venue
+- Program Series
+- Event
+- Source/Evidence
+- Discovery Candidate
+- Qualification Assessment
+- Travel Assessment
+- Lead / Lead status
+- provenance/currentness/unknown-vs-false
+- HUMAN vs DETERMINISTIC vs AI derivation identity
+
+### In MVP — supporting, not qualification core
+
+- Artist
+- Contact
+
+### Future scope
+
+- Outreach attempts/history/campaigns.
+- Automated email/call workflows.
+- Full CRM state.
+- Final scoring/ranking formula, weights and thresholds.
+- Artist similarity engine.
+- Complete Event/Artist catalog.
+- Concrete search/scraping/API/routing/LLM providers.
+- Travel threshold/bands/traffic policy.
+- Automatic confidence calibration.
+- Advanced organization hierarchy/ownership modeling beyond relationships needed above.
+
+---
+
+## Explicit implementation boundaries
+
+This product/domain contract does not define or authorize:
+- PostgreSQL schema, migrations, tables, columns, indexes or storage design;
+- Python implementation, local runtime setup or Docker configuration;
+- crawlers, scraping/search APIs, geocoding/routing integrations or provider selection;
+- AI model/provider/prompt behavior;
+- final numeric scoring formula, weights, thresholds, ranking model or travel bands;
+- exact origin address, travel cutoff or traffic policy;
+- automated outreach, email/call workflows or CRM/campaign behavior;
+- a broad implementation backlog.
+
+Those require later bounded work items and, where product authority is needed, explicit Human authorization.
 
 ## Product authority
 
