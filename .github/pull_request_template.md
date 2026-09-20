@@ -1,6 +1,6 @@
 ## Linked work item
 
-Closes/Relates to #
+Relates to #
 
 ## Implemented scope
 
