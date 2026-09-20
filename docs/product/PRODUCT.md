@@ -2,18 +2,11 @@
 
 ## Purpose
 
-Booking Radar is a local-only tool for discovering, qualifying, and tracking potential concert organizers / venues / municipalities / recurring cultural programs for the band Hackatón.
+Booking Radar is a local-only tool for discovering, qualifying, and tracking potential concert-booking opportunities for the band Hackatón.
 
-The primary target is not rentable space. The product seeks an organizer/opportunity that already has an audience mechanism and recurring or curated programming and may realistically book Hackatón.
+The primary target is not rentable space. The product seeks an Organizer/opportunity that already has an audience mechanism and recurring or curated programming and may realistically book Hackatón.
 
-A promising lead requires evidence supporting:
-- an existing audience or recurring attendance mechanism;
-- recurring or curated cultural/music programming;
-- realistic willingness to program lesser-known bands;
-- practical fit for Hackatón;
-- reasonable travel time from the band's origin area.
-
-The MVP uses explicit evidence-backed categorical qualification. It does not define a numeric scoring formula.
+Canonical relevance criteria are defined in [Required Organizer/Lead qualification dimensions](#required-organizerlead-qualification-dimensions). The MVP uses evidence-backed categorical qualification rather than a numeric score.
 
 ## Authorized current technical/product constraints
 
@@ -34,15 +27,16 @@ This document defines product/domain semantics only. It does not define a physic
 The first usable Booking Radar must be able to represent and retain enough information to:
 
 1. discover a potential opportunity from heterogeneous sources;
-2. resolve what real-world organizer/opportunity the discovery refers to;
-3. keep Organizer, Venue, Program Series and individual Event semantically distinct;
+2. resolve what real-world Organizer/opportunity the discovery refers to, including duplicate and invalid discoveries;
+3. keep Organizer, Venue, Program Series, and individual Event semantically distinct;
 4. retain Source/Evidence for material facts;
 5. assess an opportunity against the required Hackatón relevance dimensions;
 6. distinguish insufficient evidence from negative evidence;
-7. retain derived assessments separately from observed facts, including whether they were HUMAN, DETERMINISTIC or AI-derived;
-8. expose whether a candidate still needs evidence, is qualified as a Lead, or is rejected on evidenced grounds;
-9. keep travel as a qualification dimension without hard-coding an unauthorized travel policy;
-10. retain known Contact channels without implementing outreach.
+7. retain derived assessments separately from observed facts, including whether they were HUMAN, DETERMINISTIC, or AI-derived;
+8. keep discovery resolution/disposition separate from qualification state;
+9. expose whether a valid opportunity needs evidence, is qualified as a Lead, or is rejected on evidenced grounds;
+10. keep travel as a qualification dimension without hard-coding an unauthorized travel policy;
+11. retain known Contact channels without implementing outreach.
 
 SQL SELECTs/views remain sufficient as the initial UI. This contract does not define their physical schema.
 
@@ -56,9 +50,9 @@ These are semantic concepts, not authorization for one-table-per-concept persist
 
 The primary real-world subject Booking Radar wants to find and qualify.
 
-An Organizer is the person, organization, municipality, institution or operator that has programming authority or materially controls booking for a cultural program or event.
+An Organizer is the person, organization, municipality, institution, or operator that has programming authority or materially controls booking for a cultural program or event.
 
-Examples by role include a municipal cultural organization, cultural-center operator, club operator, festival organizer or recurring-program curator.
+Examples by role include a municipal cultural organization, cultural-center operator, club operator, festival organizer, or recurring-program curator.
 
 Rules:
 - qualification is primarily about an Organizer/opportunity, not a building;
@@ -77,13 +71,13 @@ A Venue may:
 - host Events from multiple Organizers;
 - host one or more Program Series.
 
-A venue being available for rent is not by itself evidence of a relevant Lead.
+A Venue being available for rent is not by itself evidence of a relevant Lead.
 
 ### Program Series — core
 
 A recurring or curated program identity under which multiple cultural/music occurrences are presented.
 
-Examples include a municipal summer-concert series, a club's recurring curated concert program or a recurring festival brand.
+Examples include a municipal summer-concert series, a club's recurring curated concert program, or a recurring festival brand.
 
 A Program Series:
 - is associated with at least one Organizer;
@@ -104,7 +98,7 @@ Event is the main observational unit for evidence such as:
 
 A recurring festival/series is a Program Series; one specific edition/date/occurrence is an Event for MVP purposes. The MVP does not need set-level or performance-slot modeling.
 
-An Event may be standalone or linked to one or more Program Series where source evidence supports that relationship.
+An Event may be standalone or linked to one or more Program Series where Source/Evidence supports that relationship.
 
 ### Artist — supporting
 
@@ -115,7 +109,7 @@ Artist exists in MVP only to support:
 - event-based discovery;
 - reverse/snowball discovery from places where relevant/comparable Artists have played.
 
-The MVP does not require a complete artist catalog, similarity engine or artist scoring model.
+The MVP does not require a complete artist catalog, similarity engine, or artist scoring model.
 
 ### Contact — supporting
 
@@ -125,7 +119,7 @@ Contact data may include a general booking/programming channel even when no name
 
 Contact availability is not a qualification requirement for relevance. It affects later actionability only.
 
-Sending messages, tracking outreach attempts or campaign state is future scope.
+Sending messages, tracking outreach attempts, or campaign state is future scope.
 
 ### Source and Evidence — core
 
@@ -145,18 +139,35 @@ The discovery mechanism itself never grants truth or qualification authority.
 
 ### Discovery Candidate — core workflow concept
 
-A discovered subject/hypothesis not yet sufficiently resolved and qualified.
+A discovered subject/hypothesis not yet fully resolved and qualified.
 
 A Discovery Candidate may initially point to:
 - an Organizer;
 - a Venue;
 - a Program Series;
 - an Event;
-- or a source item from which the real Organizer still needs to be derived.
+- or a Source item from which the real Organizer still needs to be derived.
 
 Different discovery paths must converge through identity resolution and Evidence into the same Organizer-centered model.
 
-A Discovery Candidate is not yet a qualified Lead.
+Discovery **resolution/disposition** is separate from qualification. The product must distinguish these semantic outcomes:
+
+```text
+UNRESOLVED
+RESOLVED
+DUPLICATE
+INVALID
+```
+
+Meanings:
+- `UNRESOLVED` — the real Organizer/opportunity context is not yet established;
+- `RESOLVED` — the discovery has been resolved to a valid Organizer/opportunity context that can proceed through qualification;
+- `DUPLICATE` — the discovery represents an identity/opportunity already represented by another resolved record/context;
+- `INVALID` — the discovery does not represent a usable booking-opportunity candidate.
+
+`DUPLICATE` and `INVALID` are resolution/disposition outcomes, not qualification failures. They must not be encoded merely as qualification `REJECTED`.
+
+Exact persistence representation, merge mechanics, and deduplication algorithms are technical future scope.
 
 ### Lead — core product concept
 
@@ -173,11 +184,11 @@ The same Organizer may have multiple distinguishable opportunity contexts if dif
 
 ### Qualification Assessment — core
 
-A derived, evidence-backed assessment of a Discovery Candidate / Lead context against the required relevance dimensions.
+A derived, evidence-backed assessment of a **resolved valid** Discovery Candidate / Lead context against the required relevance dimensions.
 
 Qualification is versionable/re-assessable product state, not an immutable fact about an Organizer.
 
-For each qualification dimension, the semantic outcome is:
+For each qualification dimension:
 
 ```text
 SUPPORTED
@@ -185,9 +196,9 @@ CONTRADICTED
 UNKNOWN
 ```
 
-Freshness/currentness is separate from truth status.
+Currentness/freshness is separate from truth status.
 
-Overall candidate state is:
+Overall qualification state:
 
 ```text
 NEEDS_EVIDENCE
@@ -197,10 +208,12 @@ REJECTED
 
 Rules:
 - `UNKNOWN` never means false;
-- a candidate with an `UNKNOWN` mandatory dimension cannot be rejected merely because evidence is absent;
-- `REJECTED` requires current evidence that contradicts at least one mandatory relevance dimension;
-- `QUALIFIED` requires all mandatory dimensions to be `SUPPORTED` by adequate current evidence and none contradicted;
-- otherwise the candidate remains `NEEDS_EVIDENCE`.
+- a mandatory `UNKNOWN` dimension cannot cause rejection merely because evidence is absent;
+- `REJECTED` requires adequate current Evidence contradicting at least one mandatory relevance dimension;
+- `QUALIFIED` requires all mandatory dimensions to remain `SUPPORTED` by adequate current Evidence and none contradicted;
+- otherwise a resolved valid opportunity remains `NEEDS_EVIDENCE`;
+- if Evidence that was necessary for a mandatory supported dimension becomes stale and adequate current support no longer exists, the candidate cannot remain `QUALIFIED`; absent current contradictory Evidence, it returns to `NEEDS_EVIDENCE` until refreshed;
+- stale Evidence does not itself become false or `CONTRADICTED`.
 
 This is a categorical contract, not a scoring formula.
 
@@ -229,7 +242,7 @@ This contract intentionally does not authorize:
 - a traffic-time model;
 - travel bands or weights.
 
-Until a later authorized travel policy exists, automated logic must not invent the rule that converts measured travel data into `REASONABLE` or `UNREASONABLE`. It may preserve measured facts and/or an explicit Human-provided assessment with provenance; otherwise the result remains `UNKNOWN`.
+Until a later authorized travel policy exists, automated logic must not invent the rule converting measured travel data into `REASONABLE` or `UNREASONABLE`. It may preserve measured facts and/or an explicit Human-provided assessment with provenance; otherwise the result remains `UNKNOWN`.
 
 This unresolved implementation policy does not block the MVP/domain or later persistence design.
 
@@ -237,11 +250,11 @@ This unresolved implementation policy does not block the MVP/domain or later per
 
 ## Required Organizer/Lead qualification dimensions
 
-A relevant Hackatón Lead must have evidence supporting all five dimensions:
+A relevant Hackatón Lead must have adequate current Evidence supporting all five dimensions:
 
-1. **Audience mechanism** — there is an existing audience, recurring attendance mechanism, community or established channel that can plausibly bring attendees without Hackatón creating the event from zero.
+1. **Audience mechanism** — there is an existing audience, recurring attendance mechanism, community, or established channel that can plausibly bring attendees without Hackatón creating the event from zero.
 2. **Recurring/curated programming** — the Organizer runs or controls recurring or meaningfully curated cultural/music programming rather than merely renting space.
-3. **Lesser-known artist programmability** — evidence supports that the Organizer can realistically book artists without requiring major-name status.
+3. **Lesser-known artist programmability** — Evidence supports that the Organizer can realistically book artists without requiring major-name status.
 4. **Hackatón fit** — observed programming/context is plausibly compatible with Hackatón as a Czech authorial folk-rock band; exact scoring taxonomy is future scope.
 5. **Travel reasonableness** — current Travel Assessment is `REASONABLE`.
 
@@ -251,7 +264,7 @@ Contact availability is useful supporting data but is not a mandatory qualificat
 
 ---
 
-## Observed facts, derived assessments and inference
+## Observed facts, derived assessments, and inference
 
 ### Observed fact
 
@@ -286,14 +299,14 @@ Conflicting Evidence is preserved and surfaced rather than overwritten by whiche
 
 ---
 
-## Evidence, provenance and currentness
+## Evidence, provenance, and currentness
 
 ### Provenance
 
 A material fact or assessment must be traceable to the Evidence used to support or contradict it.
 
 Where practical, provenance identifies:
-- source identity/reference;
+- Source identity/reference;
 - what was observed;
 - observation/event date when available;
 - retrieval/capture date;
@@ -303,9 +316,9 @@ The technical representation is future design.
 
 ### UNKNOWN versus evidenced negative
 
-`UNKNOWN` means sufficient evidence is absent or inconclusive.
+`UNKNOWN` means sufficient Evidence is absent or inconclusive.
 
-A negative/false/contradicted conclusion requires evidence supporting that negative conclusion.
+A negative/false/contradicted conclusion requires Evidence supporting that negative conclusion.
 
 Examples:
 - no Contact found does not mean the Organizer has no contact;
@@ -320,13 +333,13 @@ Currentness must be representable separately from value/truth.
 
 No global freshness duration is authorized. Later contracts may define fact-specific refresh rules.
 
-A qualification relying materially on stale Evidence must be identifiable as needing refresh; stale Evidence is not silently treated as current or as false.
+A qualification relying materially on stale Evidence must be identifiable as needing refresh. If stale Evidence removes adequate current support for a mandatory dimension, the qualification transition rules above apply; stale Evidence is not treated as false.
 
 ### Confidence
 
 Confidence is optional metadata for uncertain extraction/classification/inference.
 
-No universal numeric confidence scale or threshold is defined by this contract.
+No universal numeric confidence scale or threshold is defined.
 
 Confidence:
 - does not replace Evidence;
@@ -348,15 +361,13 @@ Supported conceptual paths include:
 - similar/comparable Artist history → Artist → Event → Venue/Program Series → Organizer.
 
 Rules:
-
 1. Discovery route does not determine Lead quality.
 2. The same Organizer found by different routes should resolve to one Organizer identity where Evidence supports that identity.
 3. Source-specific raw/Evidence context is preserved even after identity resolution.
 4. A Venue discovered first must not be treated as Organizer without Evidence of programming authority.
 5. An Event discovered first is Evidence and a path to the Organizer; it is not itself a Lead.
 6. Duplicate/identity uncertainty must remain representable rather than being resolved by guess.
-
-Exact deduplication algorithms are technical future scope.
+7. Once a duplicate or invalid discovery is established, that disposition remains distinct from qualification rejection.
 
 ---
 
@@ -369,10 +380,10 @@ Exact deduplication algorithms are technical future scope.
 - Program Series
 - Event
 - Source/Evidence
-- Discovery Candidate
+- Discovery Candidate and discovery resolution/disposition
 - Qualification Assessment
 - Travel Assessment
-- Lead / Lead status
+- Lead / qualification state
 - provenance/currentness/unknown-vs-false
 - HUMAN vs DETERMINISTIC vs AI derivation identity
 
@@ -381,35 +392,23 @@ Exact deduplication algorithms are technical future scope.
 - Artist
 - Contact
 
-### Future scope
+### Future / not yet authorized
 
-- Outreach attempts/history/campaigns.
-- Automated email/call workflows.
-- Full CRM state.
-- Final scoring/ranking formula, weights and thresholds.
-- Artist similarity engine.
-- Complete Event/Artist catalog.
-- Concrete search/scraping/API/routing/LLM providers.
-- Travel threshold/bands/traffic policy.
+- PostgreSQL physical schema, migrations, tables, columns, indexes, and storage design.
+- Python implementation, local runtime setup, and Docker configuration.
+- Crawlers, scraping/search APIs, geocoding/routing integrations, and provider selection.
+- AI model/provider/prompt behavior.
+- Final numeric scoring/ranking formula, weights, thresholds, and travel bands.
+- Exact origin address, travel cutoff, and traffic policy.
+- Outreach attempts/history/campaigns, automated email/call workflows, and CRM state.
+- Artist similarity engine and complete Event/Artist catalog.
 - Automatic confidence calibration.
 - Advanced organization hierarchy/ownership modeling beyond relationships needed above.
-
----
-
-## Explicit implementation boundaries
-
-This product/domain contract does not define or authorize:
-- PostgreSQL schema, migrations, tables, columns, indexes or storage design;
-- Python implementation, local runtime setup or Docker configuration;
-- crawlers, scraping/search APIs, geocoding/routing integrations or provider selection;
-- AI model/provider/prompt behavior;
-- final numeric scoring formula, weights, thresholds, ranking model or travel bands;
-- exact origin address, travel cutoff or traffic policy;
-- automated outreach, email/call workflows or CRM/campaign behavior;
-- a broad implementation backlog.
+- Exact duplicate-merge/deduplication algorithms.
+- A broad implementation backlog.
 
 Those require later bounded work items and, where product authority is needed, explicit Human authorization.
 
 ## Product authority
 
-Human/Product Owner owns product behavior, scope and material business/risk/cost decisions. Technical artifacts implement sufficiently specific authorized semantics; they do not create product rules merely by existing.
+Human/Product Owner owns product behavior, scope, and material business/risk/cost decisions. Technical artifacts implement sufficiently specific authorized semantics; they do not create product rules merely by existing.
