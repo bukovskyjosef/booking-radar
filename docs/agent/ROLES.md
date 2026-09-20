@@ -1,6 +1,6 @@
 # Roles and system functions
 
-Every role-bound run has exactly one explicit active authority role. Role activation or change comes only from Human assignment or a future durable O assignment. A session must not infer a role from an Issue status, prompt history, handoff, or obvious next step.
+Every role-bound run has exactly one explicit active authority role. Under the current Project Profile, role activation or change comes only from explicit Human assignment. Issue status, handoff, automation, or O state does not activate/reassign a role. A session must not infer a role from an Issue status, prompt history, handoff, or obvious next step.
 
 ## H — Human
 
@@ -115,7 +115,7 @@ Conceptually owns deterministic control-plane behavior:
 - durable deterministic state transitions;
 - stop at real Human boundaries.
 
-Current project stage uses Human-dispatched role activation rather than autonomous O infrastructure. Manual dispatch does not weaken the durable-state or role-authority rules.
+Booking Radar intentionally uses Human-controlled role activation. O remains a conceptual control-plane function for reconstructing/guarding durable state; it does not automatically dispatch or activate A/D/R/P. No autonomous O/GitHub orchestration is an expected project path unless Human later makes a new explicit governance decision. Manual dispatch does not weaken the durable-state or role-authority rules.
 
 O must never infer product meaning, perform D implementation, issue R judgment, grant Human authority, or perform P's privileged integration outside an explicit P run.
 
